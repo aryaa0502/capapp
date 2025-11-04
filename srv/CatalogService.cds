@@ -2,22 +2,42 @@ using {anubhav.db} from '../db/datamodel';
 using {cappo.cds} from '../db/CDSViews';
 
 
-service CatalogService @(path: 'CatalogService') {
+service CatalogService @(
+     path    : 'CatalogService',
+     requires: 'authenticated-user'
+) {
 
      @Capabilities: {
           Insertable,
           Deletable: false
      }
-     entity BusinessPartnerSet               as projection on db.master.businesspartner;
+     entity BusinessPartnerSet as projection on db.master.businesspartner;
 
-     entity AddressSet                       as projection on db.master.address;
+     entity AddressSet         as projection on db.master.address;
 
      // @readonly
-     entity EmployeeSet                      as projection on db.master.employees;
+     entity EmployeeSet @(restrict: [
 
-     entity PurchaseOrderItems               as projection on db.transaction.poitems;
+          {
+               grant: ['READ'],
+               to   : 'Viewer',
+               where: 'bankName = $user.BankName'
+          },
+
+          {
+               grant: ['WRITE'],
+               to   : 'Admin'
+          }
+
+     ])                        as projection on db.master.employees;
+
+     entity PurchaseOrderItems as projection on db.transaction.poitems;
      function getOrderDefault() returns POs;
-     entity POs @(odata.draft.enabled: true, Common.DefaultValuesFunction: 'getOrderDefault') as
+
+     entity POs @(
+          odata.draft.enabled         : true,
+          Common.DefaultValuesFunction: 'getOrderDefault'
+     )                         as
           projection on db.transaction.purchaseorder {
                *,
                case
@@ -64,10 +84,10 @@ service CatalogService @(path: 'CatalogService') {
           }
           actions {
                action   boost();
-               function largestOrder() returns array of POs;
-               action setOrderStatus() returns POs;
+               function largestOrder()   returns array of POs;
+               action   setOrderStatus() returns POs;
           };
 
-     entity CProductValuesView               as projection on cds.CDSViews.CProductValuesView;
+     entity CProductValuesView as projection on cds.CDSViews.CProductValuesView;
 
 }
