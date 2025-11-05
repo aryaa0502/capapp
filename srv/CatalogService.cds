@@ -32,7 +32,10 @@ service CatalogService @(
      ])                        as projection on db.master.employees;
 
      entity PurchaseOrderItems as projection on db.transaction.poitems;
+    
+     entity ProductSet as projection on db.master.product;
      function getOrderDefault() returns POs;
+     
 
      entity POs @(
           odata.draft.enabled         : true,
@@ -88,6 +91,6 @@ service CatalogService @(
                action   setOrderStatus() returns POs;
           };
 
-     entity CProductValuesView as projection on cds.CDSViews.CProductValuesView;
+     // entity CProductValuesView as projection on cds.CDSViews.CProductValuesView;
 
 }
